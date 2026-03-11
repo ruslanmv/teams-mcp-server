@@ -20,5 +20,12 @@ class Settings(BaseSettings):
     # Optional restrictions
     ms_allowed_upn: str | None = None
 
+    # ── Persona mode (browser-based, no Azure registration) ──
+    persona_chrome_path: str | None = None          # Custom Chromium path (auto-detect if None)
+    persona_face_dir: str = "./data/faces"          # Directory for persona face images
+    persona_tts_voice: str = "en_US-amy-medium"     # Default piper-tts voice model
+    persona_headless: bool = True                   # Run browser headless by default
+    persona_stt_backend: str = "whisper"            # STT backend for persona listening
+
 
 settings = Settings()
