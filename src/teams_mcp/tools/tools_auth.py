@@ -9,7 +9,21 @@ from ..auth.token_store import TokenBundle, TokenStore
 from ..rpc.types import Json, ToolDef, text_content
 
 
-_store = TokenStore()
+_store: TokenStore | None = None
+
+
+def _get_store() -> TokenStore:
+    global _store
+    if _store is None:
+        try:
+            _store = TokenStore()
+        except RuntimeError:
+            raise RuntimeError(
+                "TEAMS_MCP_TOKEN_KEY not set. "
+                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" "
+                "and add it to your .env file."
+            )
+    return _store
 
 
 async def tool_device_code_start(args: Json) -> Json:
@@ -47,19 +61,19 @@ async def tool_device_code_poll(args: Json) -> Json:
         id_token=result.get("id_token"),
         account_upn=None,  # optional: you can parse id_token later if needed
     )
-    _store.save(bundle)
+    _get_store().save(bundle)
     return text_content("✅ Auth complete. Token saved.")
 
 
 async def tool_status(_: Json) -> Json:
-    b = _store.load()
+    b = _get_store().load()
     if not b:
         return text_content("Not authenticated.")
     return text_content("Authenticated (token present).")
 
 
 async def tool_logout(_: Json) -> Json:
-    _store.clear()
+    _get_store().clear()
     return text_content("Logged out (token cleared).")
 
 
