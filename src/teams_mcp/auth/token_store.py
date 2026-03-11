@@ -5,7 +5,11 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from cryptography.fernet import Fernet, InvalidToken
+try:
+    from cryptography.fernet import Fernet, InvalidToken
+except ImportError:  # graceful fallback when cryptography not installed
+    Fernet = None  # type: ignore[assignment,misc]
+    InvalidToken = Exception  # type: ignore[assignment,misc]
 
 from ..config import settings
 
@@ -21,6 +25,8 @@ class TokenBundle:
 
 class TokenStore:
     def __init__(self, path: str = "data/token.json.enc") -> None:
+        if Fernet is None:
+            raise RuntimeError("cryptography package is required: pip install cryptography>=42.0")
         if not settings.token_key:
             raise RuntimeError("TEAMS_MCP_TOKEN_KEY is required")
         self._fernet = Fernet(settings.token_key.encode("utf-8"))
