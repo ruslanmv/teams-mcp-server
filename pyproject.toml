@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Microsoft Teams MCP server with dual-mode: Native (Graph API) + Persona (browser guest join)"
 readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.14"
 dependencies = [
   "fastapi>=0.110",
   "uvicorn[standard]>=0.27",

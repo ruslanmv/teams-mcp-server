@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/MCP-Model_Context_Protocol-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjwvc3ZnPg==" alt="MCP">
   <img src="https://img.shields.io/badge/Tools-35-green?style=for-the-badge" alt="35 Tools">
   <img src="https://img.shields.io/badge/Dual_Mode-Native_+_Persona-F59E0B?style=for-the-badge" alt="Dual Mode">
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0">
 </p>
 
@@ -49,7 +49,14 @@ The fastest way to get a persona into a Teams meeting:
 ### 1. Install
 
 ```bash
+# Using make (auto-detects uv for faster installs)
+make install
 pip install -e ".[persona]"
+playwright install chromium
+
+# Or manually with uv
+uv venv .venv --python python3.11
+uv pip install --python .venv/bin/python -e ".[persona]"
 playwright install chromium
 ```
 
@@ -183,6 +190,14 @@ For enterprise use with full Graph API access:
 ### 1. Install
 
 ```bash
+# Using make (auto-detects uv for faster installs)
+make install
+
+# Or manually with uv
+uv venv .venv --python python3.11
+uv pip install --python .venv/bin/python -e .
+
+# Or with pip
 pip install -e .
 ```
 
@@ -550,8 +565,12 @@ HomePilot (localhost)
 ## Testing
 
 ```bash
-pip install -e ".[test]"
+# Using make (creates venv + installs deps automatically)
 make test
+
+# Or manually
+pip install -e ".[test]"
+pytest -v
 ```
 
 Tests cover: tool registration (35 tools), URL parsing, session lifecycle,
@@ -582,7 +601,7 @@ Or add to `server_catalog.yaml`:
   source:
     type: external
     git: https://github.com/ruslanmv/teams-mcp-server
-    ref: main
+    ref: master
 ```
 
 ---
