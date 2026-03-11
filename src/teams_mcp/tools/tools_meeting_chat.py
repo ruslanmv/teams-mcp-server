@@ -7,8 +7,21 @@ from ..auth.token_store import TokenStore
 from ..graph.client import GraphClient
 from ..rpc.types import Json, ToolDef, text_content
 
-_store = TokenStore()
-_graph = GraphClient(_store)
+
+def _get_store() -> TokenStore:
+    global _store
+    if _store is None:
+        _store = TokenStore()
+    return _store
+
+def _get_graph() -> GraphClient:
+    global _graph
+    if _graph is None:
+        _graph = GraphClient(_get_store())
+    return _graph
+
+_store: TokenStore | None = None
+_graph: GraphClient | None = None
 
 
 def _parse_thread_id(join_url: str) -> str | None:
@@ -36,7 +49,7 @@ async def tool_meeting_chat_resolve(args: Json) -> Json:
         return text_content(f"Resolved chat thread ID: {thread_id}")
 
     # Fallback: list recent meeting-type chats
-    data = await _graph.get("/chats", params={"$top": "20", "$filter": "chatType eq 'meeting'"})
+    data = await _get_graph().get("/chats", params={"$top": "20", "$filter": "chatType eq 'meeting'"})
     items = data.get("value", [])
     if not items:
         return text_content("Could not parse thread ID from URL, and no recent meeting chats found.")
@@ -54,7 +67,7 @@ async def tool_meeting_chat_read(args: Json) -> Json:
     top = int(args.get("top", 25) or 25)
     top = max(1, min(top, 50))
 
-    data = await _graph.get(f"/chats/{chat_id}/messages", params={"$top": str(top)})
+    data = await _get_graph().get(f"/chats/{chat_id}/messages", params={"$top": str(top)})
     items = data.get("value", [])
     if not items:
         return text_content("No messages found in this chat.")
@@ -84,7 +97,7 @@ async def tool_meeting_chat_post(args: Json) -> Json:
         return text_content("Provide chat_id and text.")
 
     body = {"body": {"contentType": "text", "content": text}}
-    await _graph.post(f"/chats/{chat_id}/messages", body)
+    await _get_graph().post(f"/chats/{chat_id}/messages", body)
     return text_content("Message posted to meeting chat.")
 
 
@@ -94,7 +107,7 @@ async def tool_meeting_chat_members(args: Json) -> Json:
     if not chat_id:
         return text_content("Provide chat_id.")
 
-    data = await _graph.get(f"/chats/{chat_id}/members")
+    data = await _get_graph().get(f"/chats/{chat_id}/members")
     items = data.get("value", [])
     if not items:
         return text_content("No members found.")

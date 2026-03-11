@@ -9,8 +9,21 @@ from ..auth.token_store import TokenStore
 from ..graph.client import GraphClient
 from ..rpc.types import Json, ToolDef, text_content
 
-_store = TokenStore()
-_graph = GraphClient(_store)
+
+def _get_store() -> TokenStore:
+    global _store
+    if _store is None:
+        _store = TokenStore()
+    return _store
+
+def _get_graph() -> GraphClient:
+    global _graph
+    if _graph is None:
+        _graph = GraphClient(_get_store())
+    return _graph
+
+_store: TokenStore | None = None
+_graph: GraphClient | None = None
 
 # In-process session registry — lost on server restart (stateless by design).
 _sessions: Dict[str, Dict[str, Any]] = {}
@@ -44,7 +57,7 @@ async def tool_meeting_connect(args: Json) -> Json:
 
     # Verify the chat is accessible via Graph API
     try:
-        await _graph.get(f"/chats/{thread_id}")
+        await _get_graph().get(f"/chats/{thread_id}")
     except Exception as exc:
         return text_content(
             f"Chat thread {thread_id} is not accessible. "

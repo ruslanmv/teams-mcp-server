@@ -8,8 +8,20 @@ from ..graph.client import GraphClient
 from ..rpc.types import Json, ToolDef, text_content
 
 
-_store = TokenStore()
-_graph = GraphClient(_store)
+def _get_store() -> TokenStore:
+    global _store
+    if _store is None:
+        _store = TokenStore()
+    return _store
+
+def _get_graph() -> GraphClient:
+    global _graph
+    if _graph is None:
+        _graph = GraphClient(_get_store())
+    return _graph
+
+_store: TokenStore | None = None
+_graph: GraphClient | None = None
 
 
 def _iso(dt: datetime) -> str:
@@ -32,7 +44,7 @@ async def tool_list_range(args: Json) -> Json:
         return text_content("Provide time_min and time_max (ISO timestamps).")
 
     # Graph expects DateTimeTimeZone shape via query for /calendarView
-    data = await _graph.get(
+    data = await _get_graph().get(
         "/me/calendarView",
         params={
             "startDateTime": parser.isoparse(time_min).isoformat(),
@@ -55,7 +67,7 @@ async def tool_get_join_link(args: Json) -> Json:
     event_id = str(args.get("event_id", "")).strip()
     if not event_id:
         return text_content("Provide event_id.")
-    ev = await _graph.get(f"/me/events/{event_id}")
+    ev = await _get_graph().get(f"/me/events/{event_id}")
     link = ev.get("onlineMeeting", {}).get("joinUrl") or ev.get("onlineMeetingUrl") or ev.get("webLink")
     if not link:
         return text_content("No join link found on this event.")

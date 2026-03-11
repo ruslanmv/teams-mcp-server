@@ -5,14 +5,26 @@ from ..graph.client import GraphClient
 from ..rpc.types import Json, ToolDef, text_content
 
 
-_store = TokenStore()
-_graph = GraphClient(_store)
+def _get_store() -> TokenStore:
+    global _store
+    if _store is None:
+        _store = TokenStore()
+    return _store
+
+def _get_graph() -> GraphClient:
+    global _graph
+    if _graph is None:
+        _graph = GraphClient(_get_store())
+    return _graph
+
+_store: TokenStore | None = None
+_graph: GraphClient | None = None
 
 
 async def tool_list_chats(args: Json) -> Json:
     top = int(args.get("top", 10) or 10)
     top = max(1, min(top, 50))
-    data = await _graph.get("/chats", params={"$top": str(top)})
+    data = await _get_graph().get("/chats", params={"$top": str(top)})
     items = data.get("value", [])
     lines = [f"Recent chats ({len(items)}):"]
     for c in items:
@@ -26,12 +38,12 @@ async def tool_send_chat_message(args: Json) -> Json:
     if not chat_id or not text:
         return text_content("Provide chat_id and text.")
     body = {"body": {"contentType": "text", "content": text}}
-    await _graph.post(f"/chats/{chat_id}/messages", body)
+    await _get_graph().post(f"/chats/{chat_id}/messages", body)
     return text_content("✅ Message sent.")
 
 
 async def tool_list_joined_teams(_: Json) -> Json:
-    data = await _graph.get("/me/joinedTeams")
+    data = await _get_graph().get("/me/joinedTeams")
     items = data.get("value", [])
     lines = [f"Joined teams ({len(items)}):"]
     for t in items:
@@ -43,7 +55,7 @@ async def tool_list_channels(args: Json) -> Json:
     team_id = str(args.get("team_id", "")).strip()
     if not team_id:
         return text_content("Provide team_id.")
-    data = await _graph.get(f"/teams/{team_id}/channels")
+    data = await _get_graph().get(f"/teams/{team_id}/channels")
     items = data.get("value", [])
     lines = [f"Channels ({len(items)}):"]
     for ch in items:
@@ -58,7 +70,7 @@ async def tool_send_channel_message(args: Json) -> Json:
     if not team_id or not channel_id or not text:
         return text_content("Provide team_id, channel_id, text.")
     body = {"body": {"contentType": "text", "content": text}}
-    await _graph.post(f"/teams/{team_id}/channels/{channel_id}/messages", body)
+    await _get_graph().post(f"/teams/{team_id}/channels/{channel_id}/messages", body)
     return text_content("✅ Channel message sent.")
 
 
