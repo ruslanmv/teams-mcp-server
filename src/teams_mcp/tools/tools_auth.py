@@ -9,21 +9,13 @@ from ..auth.token_store import TokenBundle, TokenStore
 from ..rpc.types import Json, ToolDef, text_content
 
 
-_store: TokenStore | None = None
-
-
 def _get_store() -> TokenStore:
     global _store
     if _store is None:
-        try:
-            _store = TokenStore()
-        except RuntimeError:
-            raise RuntimeError(
-                "TEAMS_MCP_TOKEN_KEY not set. "
-                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\" "
-                "and add it to your .env file."
-            )
+        _store = TokenStore()
     return _store
+
+_store: TokenStore | None = None
 
 
 async def tool_device_code_start(args: Json) -> Json:
